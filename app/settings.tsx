@@ -1,21 +1,24 @@
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from "react-native";
+import { Link, useRouter } from "expo-router";
 
-export default function Index() {
+export default function Settings() {
+    const router = useRouter();
+  
 
-
-  return (
-
-    <View
-      style={styles.main}
-    >
-        <Text>In the settings</Text>
-    </View>
-  );
+    return (
+        <View
+        style={styles.main}
+        >
+            <Text onPress={() => router.back()}>In the settings</Text>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  main:{
-    flex: 1,
-    alignItems: "center",
-  },
+    main:{
+        flex: 1,
+        alignItems: "center",
+
+    },
 });

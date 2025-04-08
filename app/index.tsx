@@ -1,16 +1,9 @@
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from "react-native";
-import { Link, useNavigation } from "expo-router";
+import { Link } from "expo-router";
 
 export default function Index() {
-  const nav = useNavigation();
-  
-  useEffect(()=> {
-    nav.setOptions( {})
-  });
-
   return (
-
     <View style={styles.main}>
       <Link style={styles.settingsButton} href="/settings">Settings</Link>
     </View>
