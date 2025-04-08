@@ -1,12 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 import {Link} from "expo-router";
-import  TextLink  from  'react-native-text-link';
 
 export default function Index() {
 
-  function openSettings(){
-
-  }
 
   return (
 
@@ -14,9 +10,8 @@ export default function Index() {
       style={styles.main}
     >
       <View style={styles.settingsButton}>
-        <TextLink links={[{ text: 'Settings', onPress: openSettings }]}>Settings</TextLink>
+        <Link href="/settings"></Link>
       </View>
-      <Link href="/settings"></Link>
     </View>
   );
 }
