@@ -1,22 +1,34 @@
 import { useState } from "react";
 import { StyleSheet, Text, View, Switch } from "react-native";
 import { useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function Settings() {
+export default async function Settings() {
 
     const router = useRouter();
   
-    const [vibrationOn, setVibrationOn] = useState(readSettings()); // read backend for inital state of button
+    const [vibrationOn, setVibrationOn] = useState(await readSettings()); // read backend for inital state of button
     
 
-    function readSettings() {
-        // Read
-        // return boolean
-        return false;
+    async function readSettings() {
+        try {
+            const value = await AsyncStorage.getItem('vibration-on');
+            return value === "true" ? true: false;
+        } 
+        catch (e) {
+            console.error(e);
+        }
     }
 
-    function toggleVibrationOn(){
+    async function toggleVibrationOn(){
         setVibrationOn(previous => !previous);
+
+        try {
+            await AsyncStorage.setItem('vibration-on', vibrationOn ? "true" : "false");
+        } 
+        catch (e) {
+            console.error(e);
+        }
     }
 
     return (
@@ -24,7 +36,7 @@ export default function Settings() {
             <Text style={styles.backButton} onPress={() => router.back()}>← Back</Text>
             <View style={styles.settingsSection}>
                 <Text style={styles.settingsText}>Haptic Feedback</Text>
-                <Switch onValueChange={toggleVibrationOn} value={vibrationOn}></Switch>
+                <Switch onValueChange={async () => await toggleVibrationOn()} value={vibrationOn}></Switch>
             </View>
         </View>
     );
