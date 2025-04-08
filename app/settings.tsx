@@ -8,7 +8,7 @@ export default function Index() {
     <View
       style={styles.main}
     >
-        <Text></Text>
+        <Text>In the settings</Text>
     </View>
   );
 }
