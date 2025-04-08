@@ -2,15 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, Modal, TextInput, Switch, TouchableOpacity, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
+import { Appointment } from '../types/appointment';
+import { appointmentApi } from '../services/api';
+import { dateTimeService } from '../services/dateTime';
 
 // Types
-interface Appointment {
-  id: string;
-  title: string;
-  startDateTime: string;
-  endDateTime: string;
-}
-
 interface CalendarDay {
   dateString: string;
 }
@@ -38,55 +34,32 @@ export default function Index() {
 
   // API functions
   const fetchAppointments = async () => {
-    try {
-      const response = await fetch(API_URL);
-      const data = await response.json();
-      setAppointments(data);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-    }
+    const data = await appointmentApi.fetchAppointments();
+    setAppointments(data);
   };
 
   const handleSave = async () => {
-    try {
-      // Parse the date and time inputs
-      let startDateTime = new Date();
-      let endDateTime = new Date();
-      
-      if (isWholeDay) {
-        // For whole day appointments, use the same date for start and end
-        const [year, month, day] = startDateInput.split('-').map(Number);
-        startDateTime = new Date(year, month - 1, day, 0, 0, 0);
-        endDateTime = new Date(year, month - 1, day, 23, 59, 59);
-      } else {
-        // For regular appointments, parse both date and time
-        const [startYear, startMonth, startDay] = startDateInput.split('-').map(Number);
-        const [startHour, startMinute] = startTimeInput.split(':').map(Number);
-        startDateTime = new Date(startYear, startMonth - 1, startDay, startHour, startMinute);
-        
-        const [endYear, endMonth, endDay] = endDateInput.split('-').map(Number);
-        const [endHour, endMinute] = endTimeInput.split(':').map(Number);
-        endDateTime = new Date(endYear, endMonth - 1, endDay, endHour, endMinute);
-      }
+    let startDateTime: Date;
+    let endDateTime: Date;
 
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          startDateTime: startDateTime.toISOString(),
-          endDateTime: endDateTime.toISOString(),
-        }),
-      });
+    if (isWholeDay) {
+      const { start, end } = dateTimeService.parseWholeDay(startDateInput);
+      startDateTime = start;
+      endDateTime = end;
+    } else {
+      startDateTime = dateTimeService.parseDateTime(startDateInput, startTimeInput);
+      endDateTime = dateTimeService.parseDateTime(endDateInput, endTimeInput);
+    }
 
-      if (response.ok) {
-        resetForm();
-        fetchAppointments(); // Refresh appointments list
-      }
-    } catch (error) {
-      console.error('Error creating appointment:', error);
+    const success = await appointmentApi.createAppointment({
+      title,
+      startDateTime: startDateTime.toISOString(),
+      endDateTime: endDateTime.toISOString(),
+    });
+
+    if (success) {
+      resetForm();
+      fetchAppointments();
     }
   };
 
@@ -102,38 +75,11 @@ export default function Index() {
   };
 
   const getAppointmentsOfDate = (date: string) => {
-    if (!date) return [];
-    
-    const selectedDate = new Date(date);
-    return appointments.filter(appointment => {
-      const startDate = new Date(appointment.startDateTime);
-      const endDate = new Date(appointment.endDateTime);
-      
-      return (
-        (startDate.toDateString() === selectedDate.toDateString()) ||
-        (endDate.toDateString() === selectedDate.toDateString()) ||
-        (startDate < selectedDate && endDate > selectedDate)
-      );
-    });
+    return dateTimeService.getAppointmentsOfDate(appointments, date);
   };
 
   const formatAppointmentTime = (appointment: Appointment) => {
-    const startDate = new Date(appointment.startDateTime);
-    const endDate = new Date(appointment.endDateTime);
-    
-    if (startDate.toDateString() !== endDate.toDateString()) {
-      return '(whole day)';
-    }
-    
-    const formatTime = (date: Date) => {
-      return date.toLocaleTimeString('en-US', { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false 
-      });
-    };
-    
-    return `${formatTime(startDate)} - ${formatTime(endDate)}`;
+    return dateTimeService.formatAppointmentTime(appointment);
   };
 
   // Render functions

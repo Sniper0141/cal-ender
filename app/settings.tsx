@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View, Switch } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { settingsService } from '../services/settings';
 
 // Constants
 const VIBRATION_STORAGE_KEY = 'vibration-on';
@@ -15,28 +15,16 @@ export default function Settings() {
   // Effects
   useFocusEffect(useCallback(() => {
     const readSettings = async () => {
-      try {
-        const value = await AsyncStorage.getItem(VIBRATION_STORAGE_KEY);
-        setVibrationOn(value === 'true');
-      } catch (error) {
-        console.error('Error reading vibration setting:', error);
-      }
+      const value = await settingsService.getVibrationSetting();
+      setVibrationOn(value);
     };
     readSettings();
   }, []));
 
   // Event handlers
-  const toggleVibrationOn = useCallback((vibration: boolean) => {
-    const saveVibrationSetting = async () => {
-      setVibrationOn(vibration);
-  
-      try {
-        await AsyncStorage.setItem(VIBRATION_STORAGE_KEY, vibration ? 'true' : 'false');
-      } catch (error) {
-        console.error('Error saving vibration setting:', error);
-      }
-    };
-    saveVibrationSetting();
+  const toggleVibrationOn = useCallback(async (vibration: boolean) => {
+    setVibrationOn(vibration);
+    await settingsService.setVibrationSetting(vibration);
   }, []);
 
   // Render
