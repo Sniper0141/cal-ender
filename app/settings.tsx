@@ -1,42 +1,48 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { StyleSheet, Text, View, Switch } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default async function Settings() {
+export default function Settings() {
 
     const router = useRouter();
   
-    const [vibrationOn, setVibrationOn] = useState(await readSettings()); // read backend for inital state of button
+    const [vibrationOn, setVibrationOn] = useState<boolean>(false); // read backend for inital state of button
+
+
+    useFocusEffect(useCallback(() => {
+        const readSettings = async () => {
+            try {
+                const value = await AsyncStorage.getItem('vibration-on');
+                setVibrationOn(value === "true");
+            } 
+            catch (e) {
+                console.error(e);
+            }
+        }
+        readSettings();
+    }, []));
+
+    const toggleVibrationOn = useCallback((vibration: boolean) => {
+        const toggle = async () => {
+            setVibrationOn(vibration);
     
-
-    async function readSettings() {
-        try {
-            const value = await AsyncStorage.getItem('vibration-on');
-            return value === "true" ? true: false;
-        } 
-        catch (e) {
-            console.error(e);
+            try {
+                await AsyncStorage.setItem('vibration-on', vibration ? "true" : "false");
+            } 
+            catch (e) {
+                console.error(e);
+            }
         }
-    }
-
-    async function toggleVibrationOn(){
-        setVibrationOn(previous => !previous);
-
-        try {
-            await AsyncStorage.setItem('vibration-on', vibrationOn ? "true" : "false");
-        } 
-        catch (e) {
-            console.error(e);
-        }
-    }
+        toggle();
+    }, []);
 
     return (
         <View style={styles.main}>
             <Text style={styles.backButton} onPress={() => router.back()}>← Back</Text>
             <View style={styles.settingsSection}>
                 <Text style={styles.settingsText}>Haptic Feedback</Text>
-                <Switch onValueChange={async () => await toggleVibrationOn()} value={vibrationOn}></Switch>
+                <Switch onValueChange={() => toggleVibrationOn(!vibrationOn)} value={vibrationOn}></Switch>
             </View>
         </View>
     );
