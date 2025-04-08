@@ -8,6 +8,10 @@ export default function Index() {
 
   const [selectedDay, setSelectedDay] = useState("");
 
+  function getAppointmentsofDate(date: Date){
+    
+  }
+
   return (
     <View style={styles.main}>
       <Link style={styles.settingsButton} href="/settings">Settings</Link>
@@ -32,6 +36,9 @@ export default function Index() {
         }}
         style={styles.calendar}
       />
+      <View style={styles.appointmentsSection}>
+        <Text style={styles.appointment}>Text</Text>
+      </View>
     </View>
   );
 }
@@ -52,5 +59,15 @@ const styles = StyleSheet.create({
   calendar:{
     transform: [{ scale: 1.2 }],
     marginTop: 50
+  },
+  appointmentsSection:{
+    marginTop: 70,
+    padding: 30,
+    width: 350,
+    borderRadius: 20,
+    backgroundColor: "#DE7AFA"
+  },
+  appointment:{
+    fontSize: 20
   }
 });
