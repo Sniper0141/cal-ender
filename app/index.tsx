@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Modal, TextInput, Switch, TouchableOpacity, ScrollView, Platform } from "react-native";
-import { Link } from "expo-router";
+import { StyleSheet, Text, View, Modal, TextInput, Switch, TouchableOpacity, ScrollView } from 'react-native';
+import { Link } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 
+// Types
 interface Appointment {
   id: string;
   title: string;
@@ -10,23 +11,32 @@ interface Appointment {
   endDateTime: string;
 }
 
+interface CalendarDay {
+  dateString: string;
+}
+
+// Constants
 const API_URL = 'https://cal-ender-backend.vercel.app/api/appointments';
 
+// Main component
 export default function Index() {
-  const [selectedDay, setSelectedDay] = useState("");
+  // State
+  const [selectedDay, setSelectedDay] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [isWholeDay, setIsWholeDay] = useState(false);
-  const [title, setTitle] = useState("");
-  const [startDateInput, setStartDateInput] = useState("");
-  const [startTimeInput, setStartTimeInput] = useState("");
-  const [endDateInput, setEndDateInput] = useState("");
-  const [endTimeInput, setEndTimeInput] = useState("");
+  const [title, setTitle] = useState('');
+  const [startDateInput, setStartDateInput] = useState('');
+  const [startTimeInput, setStartTimeInput] = useState('');
+  const [endDateInput, setEndDateInput] = useState('');
+  const [endTimeInput, setEndTimeInput] = useState('');
 
+  // Effects
   useEffect(() => {
     fetchAppointments();
   }, []);
 
+  // API functions
   const fetchAppointments = async () => {
     try {
       const response = await fetch(API_URL);
@@ -72,18 +82,23 @@ export default function Index() {
       });
 
       if (response.ok) {
-        setShowModal(false);
-        setTitle("");
-        setIsWholeDay(false);
-        setStartDateInput("");
-        setStartTimeInput("");
-        setEndDateInput("");
-        setEndTimeInput("");
+        resetForm();
         fetchAppointments(); // Refresh appointments list
       }
     } catch (error) {
       console.error('Error creating appointment:', error);
     }
+  };
+
+  // Helper functions
+  const resetForm = () => {
+    setShowModal(false);
+    setTitle('');
+    setIsWholeDay(false);
+    setStartDateInput('');
+    setStartTimeInput('');
+    setEndDateInput('');
+    setEndTimeInput('');
   };
 
   const getAppointmentsOfDate = (date: string) => {
@@ -107,7 +122,7 @@ export default function Index() {
     const endDate = new Date(appointment.endDateTime);
     
     if (startDate.toDateString() !== endDate.toDateString()) {
-      return "(whole day)";
+      return '(whole day)';
     }
     
     const formatTime = (date: Date) => {
@@ -121,15 +136,123 @@ export default function Index() {
     return `${formatTime(startDate)} - ${formatTime(endDate)}`;
   };
 
+  // Render functions
+  const renderAppointmentForm = () => (
+    <ScrollView>
+      <Text style={styles.modalTitle}>New Appointment</Text>
+      
+      <Text style={styles.label}>Title</Text>
+      <TextInput
+        style={styles.input}
+        value={title}
+        onChangeText={setTitle}
+        placeholder="Enter appointment title"
+        placeholderTextColor="#666"
+      />
+
+      <View style={styles.switchContainer}>
+        <Text style={styles.label}>Whole Day</Text>
+        <Switch
+          value={isWholeDay}
+          onValueChange={setIsWholeDay}
+        />
+      </View>
+
+      {isWholeDay ? (
+        <>
+          <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
+          <TextInput
+            style={styles.input}
+            value={startDateInput}
+            onChangeText={setStartDateInput}
+            placeholder="2024-04-08"
+            placeholderTextColor="#666"
+          />
+
+          <Text style={styles.label}>Start Time (HH:MM)</Text>
+          <TextInput
+            style={styles.input}
+            value={startTimeInput}
+            onChangeText={setStartTimeInput}
+            placeholder="10:00"
+            placeholderTextColor="#666"
+          />
+
+          <Text style={styles.label}>End Time (HH:MM)</Text>
+          <TextInput
+            style={styles.input}
+            value={endTimeInput}
+            onChangeText={setEndTimeInput}
+            placeholder="11:00"
+            placeholderTextColor="#666"
+          />
+        </>
+      ) : (
+        <>
+          <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
+          <TextInput
+            style={styles.input}
+            value={startDateInput}
+            onChangeText={setStartDateInput}
+            placeholder="2024-04-08"
+            placeholderTextColor="#666"
+          />
+
+          <Text style={styles.label}>Start Time (HH:MM)</Text>
+          <TextInput
+            style={styles.input}
+            value={startTimeInput}
+            onChangeText={setStartTimeInput}
+            placeholder="10:00"
+            placeholderTextColor="#666"
+          />
+
+          <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
+          <TextInput
+            style={styles.input}
+            value={endDateInput}
+            onChangeText={setEndDateInput}
+            placeholder="2024-04-08"
+            placeholderTextColor="#666"
+          />
+
+          <Text style={styles.label}>End Time (HH:MM)</Text>
+          <TextInput
+            style={styles.input}
+            value={endTimeInput}
+            onChangeText={setEndTimeInput}
+            placeholder="11:00"
+            placeholderTextColor="#666"
+          />
+        </>
+      )}
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity 
+          style={[styles.button, styles.cancelButton]}
+          onPress={() => setShowModal(false)}
+        >
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.button, styles.saveButton]}
+          onPress={handleSave}
+        >
+          <Text style={styles.buttonText}>Save</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+
   return (
     <View style={styles.main}>
       <Link style={styles.settingsButton} href="/settings">Settings</Link>
       <Calendar
-        onDayPress={(day: any) => {
-          setSelectedDay(day.dateString)
+        onDayPress={(day: CalendarDay) => {
+          setSelectedDay(day.dateString);
         }}
         markedDates={{
-          [selectedDay]: {selected: true }
+          [selectedDay]: { selected: true }
         }}
         theme={{
           backgroundColor: '#000000',
@@ -137,7 +260,7 @@ export default function Index() {
           textSectionTitleColor: '#C800FA',
           selectedDayBackgroundColor: '#FFFFFF',
           selectedDayTextColor: '#000000',
-          todayBackgroundColor: "#DE7AFA",
+          todayBackgroundColor: '#DE7AFA',
           todayTextColor: '#000000',
           dayTextColor: '#ffffff',
           monthTextColor: '#ffffff',
@@ -172,110 +295,7 @@ export default function Index() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
-              <Text style={styles.modalTitle}>New Appointment</Text>
-              
-              <Text style={styles.label}>Title</Text>
-              <TextInput
-                style={styles.input}
-                value={title}
-                onChangeText={setTitle}
-                placeholder="Enter appointment title"
-                placeholderTextColor="#666"
-              />
-
-              <View style={styles.switchContainer}>
-                <Text style={styles.label}>Whole Day</Text>
-                <Switch
-                  value={isWholeDay}
-                  onValueChange={setIsWholeDay}
-                />
-              </View>
-
-              {isWholeDay ? (
-                <>
-                  <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={startDateInput}
-                    onChangeText={setStartDateInput}
-                    placeholder="2024-04-08"
-                    placeholderTextColor="#666"
-                  />
-
-                  <Text style={styles.label}>Start Time (HH:MM)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={startTimeInput}
-                    onChangeText={setStartTimeInput}
-                    placeholder="10:00"
-                    placeholderTextColor="#666"
-                  />
-
-                  <Text style={styles.label}>End Time (HH:MM)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={endTimeInput}
-                    onChangeText={setEndTimeInput}
-                    placeholder="11:00"
-                    placeholderTextColor="#666"
-                  />
-                </>
-              ) : (
-                <>
-                  <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={startDateInput}
-                    onChangeText={setStartDateInput}
-                    placeholder="2024-04-08"
-                    placeholderTextColor="#666"
-                  />
-
-                  <Text style={styles.label}>Start Time (HH:MM)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={startTimeInput}
-                    onChangeText={setStartTimeInput}
-                    placeholder="10:00"
-                    placeholderTextColor="#666"
-                  />
-
-                  <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={endDateInput}
-                    onChangeText={setEndDateInput}
-                    placeholder="2024-04-08"
-                    placeholderTextColor="#666"
-                  />
-
-                  <Text style={styles.label}>End Time (HH:MM)</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={endTimeInput}
-                    onChangeText={setEndTimeInput}
-                    placeholder="11:00"
-                    placeholderTextColor="#666"
-                  />
-                </>
-              )}
-
-              <View style={styles.buttonContainer}>
-                <TouchableOpacity 
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={() => setShowModal(false)}
-                >
-                  <Text style={styles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.button, styles.saveButton]}
-                  onPress={handleSave}
-                >
-                  <Text style={styles.buttonText}>Save</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
+            {renderAppointmentForm()}
           </View>
         </View>
       </Modal>
@@ -283,33 +303,34 @@ export default function Index() {
   );
 }
 
+// Styles
 const styles = StyleSheet.create({
-  main:{
+  main: {
     flex: 1,
-    alignItems: "center",
-    backgroundColor: "#000000"
+    alignItems: 'center',
+    backgroundColor: '#000000'
   },
-  settingsButton:{
-    alignSelf: "flex-end",
+  settingsButton: {
+    alignSelf: 'flex-end',
     fontSize: 24,
     marginTop: 15,
     marginRight: 20,
-    color: "#C800FA"
+    color: '#C800FA'
   },
-  calendar:{
+  calendar: {
     transform: [{ scale: 1.2 }],
     marginTop: 50
   },
-  appointmentsSection:{
+  appointmentsSection: {
     marginTop: 70,
     padding: 30,
     width: 350,
     maxHeight: 230,
     borderRadius: 20,
-    backgroundColor: "#DE7AFA",
-    overflowY: "scroll"
+    backgroundColor: '#DE7AFA',
+    overflowY: 'scroll'
   },
-  appointment:{
+  appointment: {
     fontSize: 20,
     marginBottom: 10
   },
@@ -327,36 +348,36 @@ const styles = StyleSheet.create({
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowRadius: 3.84
   },
   addButtonText: {
     fontSize: 40,
     color: '#FFFFFF',
-    lineHeight: 60,
+    lineHeight: 60
   },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     width: '90%',
-    maxHeight: '80%',
+    maxHeight: '80%'
   },
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#000000',
+    color: '#000000'
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
-    color: '#000000',
+    color: '#000000'
   },
   input: {
     borderWidth: 1,
@@ -364,34 +385,34 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     marginBottom: 15,
-    color: '#000000',
+    color: '#000000'
   },
   switchContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 15
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 20,
+    marginTop: 20
   },
   button: {
     padding: 15,
     borderRadius: 5,
-    width: '45%',
+    width: '45%'
   },
   cancelButton: {
-    backgroundColor: '#CCCCCC',
+    backgroundColor: '#CCCCCC'
   },
   saveButton: {
-    backgroundColor: '#C800FA',
+    backgroundColor: '#C800FA'
   },
   buttonText: {
     color: '#FFFFFF',
     textAlign: 'center',
     fontSize: 16,
-    fontWeight: 'bold',
-  },
+    fontWeight: 'bold'
+  }
 });
