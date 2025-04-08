@@ -1,11 +1,22 @@
 import { StyleSheet, Text, View } from "react-native";
+import {Link} from "expo-router";
+import  TextLink  from  'react-native-text-link';
 
 export default function Index() {
+
+  function openSettings(){
+
+  }
+
   return (
+
     <View
       style={styles.main}
     >
-      <Text style={styles.settingsButton}>Edit app/index.tsx to edit this screen.</Text>
+      <View style={styles.settingsButton}>
+        <TextLink links={[{ text: 'Settings', onPress: openSettings }]}>Settings</TextLink>
+      </View>
+      <Link href="/settings"></Link>
     </View>
   );
 }
