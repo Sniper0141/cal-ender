@@ -7,19 +7,12 @@ export const dateTimeService = {
     return new Date(year, month - 1, day, hour, minute);
   },
 
-  parseWholeDay: (dateInput: string): { start: Date; end: Date } => {
-    const [year, month, day] = dateInput.split('-').map(Number);
-    const start = new Date(year, month - 1, day, 0, 0, 0);
-    const end = new Date(year, month - 1, day, 23, 59, 59);
-    return { start, end };
-  },
-
   formatAppointmentTime: (appointment: Appointment): string => {
     const startDate = new Date(appointment.startDateTime);
     const endDate = new Date(appointment.endDateTime);
     
     if (startDate.toDateString() !== endDate.toDateString()) {
-      return '(whole day)';
+      return '(multi-day)';
     }
     
     const formatTime = (date: Date) => {

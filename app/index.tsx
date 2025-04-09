@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, Modal, TextInput, Switch, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Modal, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { Link } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { Appointment } from '../types/appointment';
@@ -20,7 +20,6 @@ export default function Index() {
   const [selectedDay, setSelectedDay] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [isWholeDay, setIsWholeDay] = useState(false);
   const [title, setTitle] = useState('');
   const [startDateInput, setStartDateInput] = useState('');
   const [startTimeInput, setStartTimeInput] = useState('');
@@ -39,17 +38,8 @@ export default function Index() {
   };
 
   const handleSave = async () => {
-    let startDateTime: Date;
-    let endDateTime: Date;
-
-    if (isWholeDay) {
-      const { start, end } = dateTimeService.parseWholeDay(startDateInput);
-      startDateTime = start;
-      endDateTime = end;
-    } else {
-      startDateTime = dateTimeService.parseDateTime(startDateInput, startTimeInput);
-      endDateTime = dateTimeService.parseDateTime(endDateInput, endTimeInput);
-    }
+    const startDateTime = dateTimeService.parseDateTime(startDateInput, startTimeInput);
+    const endDateTime = dateTimeService.parseDateTime(endDateInput, endTimeInput);
 
     const success = await appointmentApi.createAppointment({
       title,
@@ -67,7 +57,6 @@ export default function Index() {
   const resetForm = () => {
     setShowModal(false);
     setTitle('');
-    setIsWholeDay(false);
     setStartDateInput('');
     setStartTimeInput('');
     setEndDateInput('');
@@ -96,82 +85,41 @@ export default function Index() {
         placeholderTextColor="#666"
       />
 
-      <View style={styles.switchContainer}>
-        <Text style={styles.label}>Whole Day</Text>
-        <Switch
-          value={isWholeDay}
-          onValueChange={setIsWholeDay}
-        />
-      </View>
+      <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
+      <TextInput
+        style={styles.input}
+        value={startDateInput}
+        onChangeText={setStartDateInput}
+        placeholder="2024-04-08"
+        placeholderTextColor="#666"
+      />
 
-      {isWholeDay ? (
-        <>
-          <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-          <TextInput
-            style={styles.input}
-            value={startDateInput}
-            onChangeText={setStartDateInput}
-            placeholder="2024-04-08"
-            placeholderTextColor="#666"
-          />
+      <Text style={styles.label}>Start Time (HH:MM)</Text>
+      <TextInput
+        style={styles.input}
+        value={startTimeInput}
+        onChangeText={setStartTimeInput}
+        placeholder="10:00"
+        placeholderTextColor="#666"
+      />
 
-          <Text style={styles.label}>Start Time (HH:MM)</Text>
-          <TextInput
-            style={styles.input}
-            value={startTimeInput}
-            onChangeText={setStartTimeInput}
-            placeholder="10:00"
-            placeholderTextColor="#666"
-          />
+      <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
+      <TextInput
+        style={styles.input}
+        value={endDateInput}
+        onChangeText={setEndDateInput}
+        placeholder="2024-04-08"
+        placeholderTextColor="#666"
+      />
 
-          <Text style={styles.label}>End Time (HH:MM)</Text>
-          <TextInput
-            style={styles.input}
-            value={endTimeInput}
-            onChangeText={setEndTimeInput}
-            placeholder="11:00"
-            placeholderTextColor="#666"
-          />
-        </>
-      ) : (
-        <>
-          <Text style={styles.label}>Start Date (YYYY-MM-DD)</Text>
-          <TextInput
-            style={styles.input}
-            value={startDateInput}
-            onChangeText={setStartDateInput}
-            placeholder="2024-04-08"
-            placeholderTextColor="#666"
-          />
-
-          <Text style={styles.label}>Start Time (HH:MM)</Text>
-          <TextInput
-            style={styles.input}
-            value={startTimeInput}
-            onChangeText={setStartTimeInput}
-            placeholder="10:00"
-            placeholderTextColor="#666"
-          />
-
-          <Text style={styles.label}>End Date (YYYY-MM-DD)</Text>
-          <TextInput
-            style={styles.input}
-            value={endDateInput}
-            onChangeText={setEndDateInput}
-            placeholder="2024-04-08"
-            placeholderTextColor="#666"
-          />
-
-          <Text style={styles.label}>End Time (HH:MM)</Text>
-          <TextInput
-            style={styles.input}
-            value={endTimeInput}
-            onChangeText={setEndTimeInput}
-            placeholder="11:00"
-            placeholderTextColor="#666"
-          />
-        </>
-      )}
+      <Text style={styles.label}>End Time (HH:MM)</Text>
+      <TextInput
+        style={styles.input}
+        value={endTimeInput}
+        onChangeText={setEndTimeInput}
+        placeholder="11:00"
+        placeholderTextColor="#666"
+      />
 
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
@@ -332,12 +280,6 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 15,
     color: '#000000'
-  },
-  switchContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15
   },
   buttonContainer: {
     flexDirection: 'row',
